@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MenuOffice());
 }
 
-class MyApp extends StatelessWidget {
+class MenuOffice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Menu Delivery',
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Menú Delivery'),
     );
   }
 }
 
+// ignore: must_be_immutable
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key? key, required this.title}) : super(key: key);
 
@@ -30,6 +31,8 @@ class MyHomePage extends StatefulWidget {
   bool delivery = false;
   bool validacion = false;
   double totalPagar = 0;
+  double subtotal = 0;
+  double descuento = 0;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -43,7 +46,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void calcular() {
     setState(() {
+      //Vales negativos y en 0
       widget.validacion = false;
+      widget.subtotal = 0;
+      widget.totalPagar = 0;
+      widget.descuento = 0;
+
+      //Validacion
       if (_tfNombre.text.toString() == "" ||
           _tfPrecio.text.toString() == "" ||
           _tfPedido.text.toString() == "" ||
@@ -52,12 +61,23 @@ class _MyHomePageState extends State<MyHomePage> {
         widget.mensaje = "Campos no pueden ser vacios";
         return;
       }
-
-      // widget.nombre = _tfNombre.text.text();
+      //Pamos los valores
       widget.precio = double.parse(_tfPrecio.text);
       widget.cantidad = int.parse(_tfCantidad.text);
+      widget.subtotal = (widget.precio * widget.cantidad) + widget.descuento;
 
-      widget.totalPagar = (widget.precio * widget.cantidad);
+      //Comparamos si cumple las condiciones para descuento
+      if (widget.subtotal > 500) {
+        widget.descuento = widget.subtotal * 0.05;
+      } else {
+        widget.descuento = 0;
+      }
+      //Configuramos el valor que tendra el switch
+      if (widget.delivery) {
+        widget.totalPagar = (widget.subtotal + 20) - widget.descuento;
+      } else {
+        widget.totalPagar = widget.subtotal - widget.descuento;
+      }
     });
   }
 
@@ -120,31 +140,52 @@ class _MyHomePageState extends State<MyHomePage> {
                         _tfPrecio.text.toString() == "" ? widget.mensaje : null,
                   ),
                 ),
-                Text(
-                  "Total " + widget.totalPagar.toString(),
-                  style: TextStyle(
-                    fontSize: 20,
+                Container(
+                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        "Sub Total:" + widget.subtotal.toString(),
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
+                      ),
+                      Padding(padding: EdgeInsets.all(5)),
+                      Text(
+                        "Descuento:" + widget.descuento.toString(),
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text("Delivery"),
+                Text(
+                  "Delivery",
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                ),
                 Switch(
-                    value: widget.delivery,
-                    onChanged: (bool s) {
-                      setState(() {
-                        widget.delivery = s;
-                        if (widget.delivery = true) {
-                          widget.totalPagar = widget.totalPagar + 20;
-                        } else {
-                          widget.precio = 0;
-                        }
-                      });
-                    }),
+                  value: widget.delivery,
+                  onChanged: (value) {
+                    setState(() {
+                      widget.delivery = value;
+                    });
+                  },
+                  activeColor: Colors.blueAccent,
+                  inactiveThumbColor: Colors.black54,
+                ),
               ],
             ),
           ),
           Container(
-              margin: EdgeInsets.symmetric(vertical: 200, horizontal: 10),
-              child: Column(children: <Widget>[
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.max,
+              verticalDirection: VerticalDirection.up,
+              children: <Widget>[
                 ElevatedButton(
                   style: ButtonStyle(
                       backgroundColor: MaterialStateProperty.all(Colors.blue)),
@@ -160,7 +201,24 @@ class _MyHomePageState extends State<MyHomePage> {
                     calcular();
                   },
                 )
-              ]))
+              ],
+            ),
+          ),
+          Container(
+              margin: EdgeInsets.symmetric(vertical: 100, horizontal: 10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    "Total a Pagar:" + widget.totalPagar.toString(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      backgroundColor: Colors.blue[50],
+                    ),
+                  ),
+                ],
+              )),
         ],
       ),
     );
